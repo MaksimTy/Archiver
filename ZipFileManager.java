@@ -3,11 +3,10 @@ package com.javarush.task.task31.task3110;
 import com.javarush.task.task31.task3110.exception.PathIsNotFoundException;
 import com.javarush.task.task31.task3110.exception.WrongZipFileException;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -53,6 +52,35 @@ public class ZipFileManager {
         }
     }
 
+    public void extractAll(Path outputFolder) throws Exception {
+        // Проверяем существует ли zip файл
+        if (!Files.isRegularFile(zipFile)) {
+            throw new WrongZipFileException();
+        }
+        //Если директория outputFolder не существует, то создаём её и все папки, внутри которых она лежит.
+        if (Files.notExists(outputFolder)) {
+            Files.createDirectories(outputFolder);
+        }
+        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+            while (zipEntry != null) {
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                copyData(zipInputStream, baos);
+
+                Path file = Files.createFile(outputFolder.resolve(zipEntry.getName()));
+
+                try (FileOutputStream fos = new FileOutputStream(Paths.get(file.toString()).toFile())) {
+                    fos.write(baos.toByteArray());
+                }
+
+                zipEntry = zipInputStream.getNextEntry();
+            }
+            zipInputStream.closeEntry();
+        }
+    }
+
+
     public List<FileProperties> getFilesList() throws Exception {
         // Проверяем существует ли zip файл
         if (!Files.isRegularFile(zipFile)) {
@@ -75,7 +103,6 @@ public class ZipFileManager {
                 zipEntry = zipInputStream.getNextEntry();
             }
         }
-
         return files;
     }
 
@@ -99,4 +126,6 @@ public class ZipFileManager {
             out.write(buffer, 0, len);
         }
     }
+
+
 }
