@@ -8,7 +8,6 @@ public class Archiver {
 
     public static void main(String[] args) throws IOException {
 
-
         Operation operation = null;
         do {
             try {
@@ -22,7 +21,6 @@ public class Archiver {
 
         } while (operation != Operation.EXIT);
     }
-
 
     public static Operation askOperation() throws IOException {
         ConsoleHelper.writeMessage("Выберите операцию:");

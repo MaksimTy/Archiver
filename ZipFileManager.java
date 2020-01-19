@@ -58,15 +58,20 @@ public class ZipFileManager {
         //Если директория outputFolder не существует, то создаём её и все папки, внутри которых она лежит.
         if (Files.notExists(outputFolder)) {
             Files.createDirectories(outputFolder);
+            if (Files.notExists(outputFolder.getParent())) {
+                Files.createDirectories(outputFolder.getParent());
+            }
         }
         try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
             ZipEntry zipEntry = zipInputStream.getNextEntry();
             while (zipEntry != null) {
-
-                Path file = Files.createFile(outputFolder.resolve(zipEntry.getName()));
-
-                copyData(zipInputStream, Files.newOutputStream(file, StandardOpenOption.CREATE));
-
+                Path file = outputFolder.resolve(zipEntry.getName());
+                if (Files.notExists(file.getParent())) {
+                    Files.createDirectories(file.getParent());
+                }
+                try (OutputStream out = Files.newOutputStream(file, StandardOpenOption.CREATE)) {
+                    copyData(zipInputStream, out);
+                }
                 zipEntry = zipInputStream.getNextEntry();
             }
             zipInputStream.closeEntry();
